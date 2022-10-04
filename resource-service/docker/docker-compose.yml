@@ -1,0 +1,33 @@
+version: "3.8"
+
+services:
+  resource-service-db:
+    container_name: resource-service-db
+    image: postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=resource-service-db
+    ports:
+      - '5432:5432'
+    volumes:
+      - resource-service-data:/var/lib/postgresql/data
+
+  localstack:
+    image: localstack/localstack
+    container_name: resource-service-cloud
+    environment:
+      - SERVICES=s3
+      - DATA_DIR=${LOCALSTACK_DATA_DIR:-/tmp/localstack/data}
+      - AWS_DEFAULT_REGION=${LOCALSTACK_AWS_REGION:-us-east-1}
+      - EDGE_PORT=4566
+    volumes:
+      - "${TEMPDIR:-/tmp/localstack}:/tmp/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    ports:
+      - '4566:4566'
+
+volumes:
+  resource-service-data:
+    driver: local
