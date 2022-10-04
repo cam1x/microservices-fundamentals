@@ -1,0 +1,13 @@
+server:
+  port: 8083
+  error:
+    include-message: always
+
+spring:
+  application:
+    name: resource-processor-ms
+
+management:
+  endpoint:
+    health:
+      show-details: always
