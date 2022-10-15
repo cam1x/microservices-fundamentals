@@ -41,7 +41,6 @@ public class SongDto {
     @Positive
     private Long resourceId;
 
-    @NotNull
     @Range(min = 1800, max = 2022, message = "Song should be released between 1800 and 2022.")
     private Integer year;
 }

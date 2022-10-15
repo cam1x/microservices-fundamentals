@@ -11,3 +11,29 @@ management:
   endpoint:
     health:
       show-details: always
+
+com:
+  chachotkin:
+    service:
+      resource:
+        name: resource-service-ms
+      song:
+        name: song-service-ms
+
+kafka:
+  retry:
+    delay: 1000
+    attempts: 3
+  properties:
+    auto.offset.reset: latest
+
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 10000
+        readTimeout: 10000
+  retry:
+    period: 10000
+    max-period: 60000
+    max-attempts: 3

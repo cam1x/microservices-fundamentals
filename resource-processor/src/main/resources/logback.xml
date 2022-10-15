@@ -9,9 +9,9 @@
             <fileNamePattern>logs/archived/resource-processor.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
             <!-- each archived file, size max 10MB -->
             <maxFileSize>10MB</maxFileSize>
-            <!-- total size of all archive files, if total size > 1GB,
+            <!-- total size of all archive files, if total size > 100MB,
 				it will delete old archived file -->
-            <totalSizeCap>1GB</totalSizeCap>
+            <totalSizeCap>100MB</totalSizeCap>
             <!-- 30 days to keep -->
             <maxHistory>30</maxHistory>
         </rollingPolicy>
@@ -33,6 +33,5 @@
 
     <root level="error">
         <appender-ref ref="STDOUT"/>
-        <appender-ref ref="FILE-ROLLING"/>
     </root>
 </configuration>

@@ -1,18 +1,15 @@
-package com.chachotkin.resource.service.dto;
+package com.chachotkin.resource.processor.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
 import lombok.Setter;
-
-import java.util.Collection;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class DeleteResponseDto {
+public class UploadResponseDto {
 
-    private Collection<Long> ids;
+    private Long id;
 }

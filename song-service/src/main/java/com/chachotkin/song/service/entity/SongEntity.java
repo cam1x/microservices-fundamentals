@@ -40,6 +40,6 @@ public class SongEntity {
     @Column(nullable = false)
     private Long resourceId;
 
-    @Column(nullable = false)
+    @Column
     private Integer year;
 }

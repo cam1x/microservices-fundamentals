@@ -5,4 +5,8 @@ spring:
     password: postgres
 
 s3:
-  endpointURI: http://localhost:4566
+  endpoint-URI: http://localhost:4566
+
+kafka:
+  bootstrap-address: localhost:9093
+  topic: resource-upload
