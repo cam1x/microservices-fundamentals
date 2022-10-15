@@ -29,12 +29,12 @@ public class SongController {
     private final SongService songService;
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<UploadResponseDto> uploadSongs(@RequestBody @Valid SongDto songDto) {
+    public ResponseEntity<UploadResponseDto> upload(@RequestBody @Valid SongDto songDto) {
         return ResponseEntity.ok(songService.upload(songDto));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<SongDto> retrieveSong(@PathVariable Long id) {
+    public ResponseEntity<SongDto> retrieve(@PathVariable Long id) {
         return ResponseEntity.ok(songService.retrieve(id));
     }
 

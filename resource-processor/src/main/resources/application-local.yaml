@@ -1,0 +1,12 @@
+com:
+  chachotkin:
+    service:
+      resource:
+        url: http://localhost:8081
+      song:
+        url: http://localhost:8082
+
+kafka:
+  group-id: resource-upload
+  bootstrap-address: localhost:9093
+  topic: resource-upload

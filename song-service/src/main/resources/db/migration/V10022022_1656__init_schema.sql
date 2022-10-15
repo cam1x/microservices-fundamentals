@@ -5,6 +5,6 @@ CREATE TABLE IF NOT EXISTS songs (
     album TEXT,
     length TEXT NOT NULL,
     resource_id BIGINT NOT NULL,
-    year INTEGER NOT NULL,
+    year INTEGER,
     UNIQUE(name, artist, album, resource_id)
 );

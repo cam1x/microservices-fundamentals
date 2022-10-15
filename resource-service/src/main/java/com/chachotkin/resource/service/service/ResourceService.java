@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
@@ -26,8 +27,10 @@ import static com.chachotkin.resource.service.util.AppConstants.AUDIO_CONTENT_TY
 public class ResourceService {
 
     private final S3Service s3Service;
+    private final ResourcePublisher resourcePublisher;
     private final ResourceRepository resourceRepository;
 
+    @Transactional
     public UploadResponseDto upload(@NonNull MultipartFile multipartFile) {
         if (!AUDIO_CONTENT_TYPE.equalsIgnoreCase(multipartFile.getContentType())) {
             throw new BadRequestException("Provided content type isn't supported!");
@@ -47,6 +50,7 @@ public class ResourceService {
                 .checksum(eTag)
                 .build();
         var resourceId = resourceRepository.save(resource).getId();
+        resourcePublisher.publish(resource);
         return new UploadResponseDto(resourceId);
     }
 
