@@ -1,10 +1,9 @@
-com:
-  chachotkin:
-    service:
-      resource:
-        url: http://localhost:8081
-      song:
-        url: http://localhost:8082
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    service-url:
+      default-zone: http://localhost:8761/eureka
 
 kafka:
   group-id: resource-upload

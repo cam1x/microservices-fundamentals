@@ -1,8 +1,12 @@
-dependencies {
-    implementation "org.springframework.cloud:spring-cloud-starter-openfeign:${springOpenFiegnVersion}"
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
+}
 
-    implementation "io.github.openfeign:feign-okhttp:${openFeignVersion}"
-    implementation "io.github.openfeign:feign-httpclient:${openFeignVersion}"
+dependencies {
+    implementation "org.springframework.cloud:spring-cloud-starter-netflix-eureka-client:${netflixEurekaVersion}"
+    implementation "org.springframework.cloud:spring-cloud-starter-openfeign:${springOpenFiegnVersion}"
 
     implementation "org.apache.tika:tika-core:${tikaVersion}"
     implementation "org.apache.tika:tika-parser-audiovideo-module:${tikaVersion}"

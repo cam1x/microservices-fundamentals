@@ -6,11 +6,21 @@ server:
 
 spring:
   application:
-    name: song-service-ms
+    name: song-service
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
 
+eureka:
+  instance:
+    prefer-ip-address: false
+    status-page-url-path: /actuator/info
+    health-check-url-path: /actuator/health
+
 management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
   endpoint:
     health:
       show-details: always

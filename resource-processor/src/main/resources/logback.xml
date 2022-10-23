@@ -27,11 +27,8 @@
         </encoder>
     </appender>
 
-    <logger name="com.chachotkin" level="debug">
+    <root level="info">
         <appender-ref ref="FILE-ROLLING"/>
-    </logger>
-
-    <root level="error">
         <appender-ref ref="STDOUT"/>
     </root>
 </configuration>

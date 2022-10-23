@@ -5,7 +5,7 @@ server:
 
 spring:
   application:
-    name: resourse-service-ms
+    name: resource-service
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
   servlet:
@@ -13,7 +13,17 @@ spring:
       max-file-size: 10MB
       max-request-size: 10MB
 
+eureka:
+  instance:
+    prefer-ip-address: false
+    status-page-url-path: /actuator/info
+    health-check-url-path: /actuator/health
+
 management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
   endpoint:
     health:
       show-details: always

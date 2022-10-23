@@ -8,12 +8,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 @FeignClient(
-        value = "${com.chachotkin.service.song.name}",
-        url = "${com.chachotkin.service.song.url}",
+        name = "${com.chachotkin.service.song.name}",
+        path = "/songs",
         configuration = FeignConfig.class
 )
 public interface SongServiceClient {
 
-    @PostMapping("/songs")
+    @PostMapping
     UploadResponseDto upload(@RequestBody SongMetadata songMetadata);
 }
