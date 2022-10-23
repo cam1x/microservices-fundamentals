@@ -4,6 +4,13 @@ spring:
     username: postgres
     password: postgres
 
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    service-url:
+      default-zone: http://localhost:8761/eureka
+
 s3:
   endpoint-URI: http://localhost:4566
 

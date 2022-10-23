@@ -9,16 +9,16 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 
 @FeignClient(
-        value = "${com.chachotkin.service.resource.name}",
-        url = "${com.chachotkin.service.resource.url}",
+        name = "${com.chachotkin.service.resource.name}",
+        path = "/resources",
         configuration = FeignConfig.class
 )
 public interface ResourceServiceClient {
 
-    @GetMapping("/resources/{id}")
+    @GetMapping("/{id}")
     ByteArrayResource download(@PathVariable Long id,
                                @RequestHeader(value = HttpHeaders.RANGE, required = false) String range);
 
-    @GetMapping("/resources/{id}")
+    @GetMapping("/{id}")
     ByteArrayResource download(@PathVariable Long id);
 }

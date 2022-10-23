@@ -5,16 +5,10 @@ import com.chachotkin.resource.processor.exception.NotFoundException;
 import com.chachotkin.resource.processor.exception.ServiceException;
 import feign.Retryer;
 import feign.codec.ErrorDecoder;
-import feign.okhttp.OkHttpClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 
 public class FeignConfig {
-
-    @Bean
-    public OkHttpClient client() {
-        return new OkHttpClient();
-    }
 
     @Bean
     public ErrorDecoder errorDecoder() {
