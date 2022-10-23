@@ -11,4 +11,5 @@ include 'resource-service'
 include 'song-service'
 include 'resource-processor'
 include 'discovery-service'
+include 'api-gateway-service'
 

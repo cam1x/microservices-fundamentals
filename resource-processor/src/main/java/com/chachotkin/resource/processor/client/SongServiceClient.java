@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 @FeignClient(
         name = "${com.chachotkin.service.song.name}",
+        url = "${com.chachotkin.service.api-gateway.url}",
         path = "/songs",
         configuration = FeignConfig.class
 )
