@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 
 @FeignClient(
         name = "${com.chachotkin.service.resource.name}",
+        url = "${com.chachotkin.service.api-gateway.url}",
         path = "/resources",
         configuration = FeignConfig.class
 )

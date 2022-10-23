@@ -7,14 +7,6 @@ spring:
   application:
     name: resource-processor
 
-eureka:
-  client:
-    fetch-registry: true
-  instance:
-    prefer-ip-address: false
-    status-page-url-path: /actuator/info
-    health-check-url-path: /actuator/health
-
 management:
   endpoints:
     web:
