@@ -49,9 +49,9 @@ public class ResourceService {
                 .sourcePath(sourcePath)
                 .checksum(eTag)
                 .build();
-        var resourceId = resourceRepository.save(resource).getId();
-        resourcePublisher.publish(resource);
-        return new UploadResponseDto(resourceId);
+        var savedResource = resourceRepository.save(resource);
+        resourcePublisher.publish(savedResource);
+        return new UploadResponseDto(savedResource.getId());
     }
 
     public byte[] donwload(@NonNull Long id, String range) {
