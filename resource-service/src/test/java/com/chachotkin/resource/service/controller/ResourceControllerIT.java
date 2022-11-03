@@ -10,6 +10,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.transaction.annotation.Transactional;
 
 import static com.chachotkin.resource.service.util.AppConstants.AUDIO_CONTENT_TYPE;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -28,6 +29,7 @@ public class ResourceControllerIT extends BaseIT {
     private MockMvc mockMvc;
 
     @Test
+    @Transactional
     void shouldUploadResource() throws Exception {
         // given
         var classPathResource = new ClassPathResource(MEDIA_FILE_PATH);
@@ -46,6 +48,7 @@ public class ResourceControllerIT extends BaseIT {
     }
 
     @Test
+    @Transactional
     void shouldDownloadUploadedResource() throws Exception {
         // given
         var classPathResource = new ClassPathResource(MEDIA_FILE_PATH);
@@ -72,6 +75,7 @@ public class ResourceControllerIT extends BaseIT {
     }
 
     @Test
+    @Transactional
     void shouldDeleteUploadedResource() throws Exception {
         // given
         var classPathResource = new ClassPathResource(MEDIA_FILE_PATH);

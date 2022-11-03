@@ -34,6 +34,11 @@ public abstract class BaseIT {
     protected static final KafkaContainer KAFKA =
             new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:5.4.10"));
 
+    static {
+        LOCALSTACK.start();
+        KAFKA.start();
+    }
+
     @TestConfiguration
     static class TestConfig {
         @Bean

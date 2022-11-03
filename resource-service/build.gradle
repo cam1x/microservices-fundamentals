@@ -25,12 +25,7 @@ dependencies {
     implementation "org.apache.commons:commons-lang3:${commonsLang3Version}"
 
     testImplementation "org.springframework.kafka:spring-kafka-test:${springKafkaVersion}"
-    testImplementation "com.h2database:h2"
 
-    implementation platform("org.testcontainers:testcontainers-bom:${testContainersVersion}")
-    testImplementation "org.testcontainers:testcontainers"
-    testImplementation "org.testcontainers:junit-jupiter"
-    testImplementation "org.testcontainers:postgresql"
     testImplementation "org.testcontainers:localstack"
     testImplementation "org.testcontainers:kafka"
 
