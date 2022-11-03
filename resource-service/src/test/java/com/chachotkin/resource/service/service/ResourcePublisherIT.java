@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -48,6 +49,7 @@ public class ResourcePublisherIT extends BaseIT {
     }
 
     @Test
+    @Transactional
     void shouldPublishResource() throws JsonProcessingException {
         // given
         var resource = ResourceEntity.builder()
