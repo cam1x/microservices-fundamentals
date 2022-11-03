@@ -31,7 +31,7 @@ public class ResourceServiceTest {
     private static final long RESOURCE_ID = 1L;
     private static final long FILE_SIZE = 100L;
     private static final byte[] FILE_CONTENT = new byte[100];
-    private static final String SOURCE_PATH = "s3://resources/audio/file_example_MP3_2MG.mp3";
+    private static final String SOURCE_PATH = "s3://resources/audio/file_example_2MB.mp3";
     private static final String ETAG = "8c97039fdb854de770a4e0bbceea043d";
 
     @Mock
