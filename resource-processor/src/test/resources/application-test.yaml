@@ -1,0 +1,10 @@
+com:
+  chachotkin:
+    service:
+      api-gateway:
+        url: http://localhost:5090
+
+kafka:
+  group-id: resource-upload
+  bootstrap-address: localhost:5093
+  topic: resource-upload

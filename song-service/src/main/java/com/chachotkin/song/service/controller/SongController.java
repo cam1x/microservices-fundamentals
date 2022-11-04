@@ -28,17 +28,17 @@ public class SongController {
 
     private final SongService songService;
 
-    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<UploadResponseDto> upload(@RequestBody @Valid SongDto songDto) {
         return ResponseEntity.ok(songService.upload(songDto));
     }
 
-    @GetMapping("/{id}")
+    @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<SongDto> retrieve(@PathVariable Long id) {
         return ResponseEntity.ok(songService.retrieve(id));
     }
 
-    @DeleteMapping
+    @DeleteMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<DeleteResponseDto> delete(@RequestParam @Size(min = 1, max = 200) Collection<Long> ids) {
         var deletedIds = songService.delete(ids);
         return deletedIds.getIds().size() == ids.size()
