@@ -75,6 +75,7 @@ subprojects {
 
         filter {
             excludeTestsMatching "*.CucumberTest"
+            excludeTestsMatching "*.*ContractTest"
         }
     }
 
@@ -90,5 +91,17 @@ subprojects {
                 environment += ['CUCUMBER_PUBLISH_ENABLED': 'true', 'spring.profiles.active': 'test']
             }
         }
+    }
+
+    task consumerContractTest(type: Test, group: 'verification') {
+        useJUnitPlatform()
+        description = "Task to run contract tests"
+        environment "spring.profiles.active", "test"
+
+        testLogging {
+            events "passed", "skipped", "failed"
+        }
+
+        include("**/contract/**")
     }
 }

@@ -11,4 +11,6 @@ dependencies {
     implementation "org.apache.tika:tika-parser-audiovideo-module:${tikaVersion}"
 
     implementation "org.springframework.kafka:spring-kafka:${springKafkaVersion}"
+
+    testImplementation("org.springframework.cloud:spring-cloud-starter-contract-stub-runner:${springCloudContractVersion}")
 }
