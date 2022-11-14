@@ -1,14 +1,79 @@
 version: "3.8"
 
 services:
+  discovery-service:
+    build:
+      context: ../discovery-service
+      args:
+        JAR_FILE: build/libs/discovery-service.jar
+    hostname: discovery-service
+    env_file:
+      - .env
+      - discovery-service.env
+    ports:
+      - '8761:8761'
+
+  api-gateway-service:
+    build:
+      context: ../api-gateway-service
+      args:
+        JAR_FILE: build/libs/api-gateway-service.jar
+    env_file:
+      - .env
+      - api-gateway-service.env
+    ports:
+      - '9090:9090'
+    depends_on:
+      - discovery-service
+      - resource-service
+      - song-service
+
+  resource-processor:
+    build:
+      context: ../resource-processor
+      args:
+        JAR_FILE: build/libs/resource-processor.jar
+    env_file: .env
+    depends_on:
+      - discovery-service
+      - api-gateway-service
+      - kafka
+
+  resource-service:
+    build:
+      context: ../resource-service
+      args:
+        JAR_FILE: build/libs/resource-service.jar
+    env_file:
+      - .env
+      - resource-service.env
+    ports:
+      - '8081:8081'
+    depends_on:
+      - discovery-service
+      - resource-service-db
+      - kafka
+      - localstack
+
+  song-service:
+    build:
+      context: ../song-service
+      args:
+        JAR_FILE: build/libs/song-service.jar
+    env_file:
+      - .env
+      - song-service.env
+    ports:
+      - '8082:8082'
+    depends_on:
+      - discovery-service
+      - song-service-db
+
   resource-service-db:
     container_name: resource-service-db
-    image: postgres
+    image: postgres:alpine
     restart: always
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=resource-service-db
+    env_file: resource-service.env
     ports:
       - '5432:5432'
     volumes:
@@ -16,12 +81,9 @@ services:
 
   song-service-db:
     container_name: song-service-db
-    image: postgres
+    image: postgres:alpine
     restart: always
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=song-service-db
+    env_file: song-service.env
     ports:
       - '5433:5432'
     volumes:
@@ -30,12 +92,7 @@ services:
   localstack:
     image: localstack/localstack
     container_name: localstack
-    environment:
-      - EAGER_SERVICE_LOADING=1
-      - SERVICES=s3
-      - AWS_DEFAULT_REGION=us-east-1
-      - PERSISTENCE=1
-      - EDGE_PORT=4566
+    env_file: kafka.env
     volumes:
       - localstack:/var/lib/localstack
     ports:
@@ -53,12 +110,7 @@ services:
   kafka:
     image: confluentinc/cp-kafka:latest
     container_name: kafka
-    environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:9093
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    env_file: kafka.env
     depends_on:
       - zookeeper
     volumes:
@@ -68,8 +120,6 @@ services:
 
 volumes:
   resource-service-data:
-    driver: local
   song-service-data:
-    driver: local
   localstack:
   kafka:

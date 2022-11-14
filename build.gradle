@@ -3,6 +3,7 @@ plugins {
     id 'jacoco'
     id 'org.springframework.boot'
     id 'io.spring.dependency-management'
+    id 'com.palantir.docker'
 }
 
 jar {
@@ -11,7 +12,6 @@ jar {
 
 allprojects {
     group("${group}")
-    version("${version}")
 
     sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
@@ -24,9 +24,10 @@ allprojects {
 
 subprojects {
     apply plugin: "java"
-    apply plugin: 'jacoco'
+    apply plugin: "jacoco"
     apply plugin: "org.springframework.boot"
     apply plugin: "io.spring.dependency-management"
+    apply plugin: "com.palantir.docker"
 
     configurations {
         cucumberRuntime {
@@ -66,8 +67,21 @@ subprojects {
         testImplementation "io.rest-assured:spring-mock-mvc"
     }
 
+    tasks.dockerPrepare.configure {
+        dependsOn(tasks.bootJar.name)
+    }
+
+    docker {
+        dependsOn build
+        name = "microservices/${project.name}:latest"
+        setDockerfile(file("Dockerfile"))
+        files bootJar.archiveFile.get().asFile
+        buildArgs(["JAR_FILE": "${bootJar.archiveFileName.get()}"])
+    }
+
     test() {
         useJUnitPlatform()
+        environment "spring.profiles.active", "test"
 
         testLogging {
             events "passed", "skipped", "failed"

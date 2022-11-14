@@ -4,6 +4,7 @@ pluginManagement {
         id 'io.spring.dependency-management' version springDependencyManagementVersion
         id 'org.flywaydb.flyway' version flywayVersion
         id 'org.springframework.cloud.contract' version springCloudContractVersion
+        id 'com.palantir.docker' version palantirDockerVersion
     }
 }
 
