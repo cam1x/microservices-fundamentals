@@ -4,7 +4,6 @@ import com.chachotkin.resource.service.config.properties.KafkaProperties;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
-import org.springframework.context.annotation.Profile;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.containers.localstack.LocalStackContainer;
@@ -18,7 +17,6 @@ import software.amazon.awssdk.services.s3.S3Client;
 
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
 
-@Profile("test")
 @Testcontainers
 @ContextConfiguration(classes = BaseIT.TestConfig.class)
 public abstract class BaseIT {
