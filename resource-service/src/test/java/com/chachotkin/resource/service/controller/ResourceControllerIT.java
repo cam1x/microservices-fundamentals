@@ -1,12 +1,16 @@
 package com.chachotkin.resource.service.controller;
 
 import com.chachotkin.resource.service.BaseIT;
+import com.github.tomakehurst.wiremock.client.WireMock;
 import com.jayway.jsonpath.JsonPath;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -27,6 +31,16 @@ public class ResourceControllerIT extends BaseIT {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @BeforeEach
+    public void setUp() {
+        wireMockServer.stubFor(WireMock.get(WireMock.urlEqualTo("/storages"))
+                .willReturn(WireMock.aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                        .withBodyFile("/response/storage.json"))
+        );
+    }
 
     @Test
     @Transactional

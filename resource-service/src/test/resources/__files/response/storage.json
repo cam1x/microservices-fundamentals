@@ -1,0 +1,8 @@
+[
+  {
+    "id": 1,
+    "type": "STAGING",
+    "bucket": "test-bucket",
+    "path": "upload"
+  }
+]

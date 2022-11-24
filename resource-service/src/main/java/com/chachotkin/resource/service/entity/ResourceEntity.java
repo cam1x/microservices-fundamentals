@@ -31,13 +31,16 @@ public class ResourceEntity implements Serializable {
     private Long id;
 
     @Column(nullable = false)
-    private String sourcePath;
+    private String fileName;
 
     @Column(nullable = false)
     private String checksum;
 
     @Column(nullable = false)
     private Long size;
+
+    @Column(nullable = false)
+    private Long storageId;
 
     @CreationTimestamp
     private LocalDateTime createdAt;

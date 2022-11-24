@@ -51,6 +51,7 @@ services:
       - '8081:8081'
     depends_on:
       - discovery-service
+      - storage-service
       - resource-service-db
       - kafka
       - localstack
@@ -68,6 +69,20 @@ services:
     depends_on:
       - discovery-service
       - song-service-db
+
+  storage-service:
+    build:
+      context: ../storage-service
+      args:
+        JAR_FILE: build/libs/storage-service.jar
+    env_file:
+      - .env
+      - storage-service.env
+    ports:
+      - '8083:8083'
+    depends_on:
+      - discovery-service
+      - storage-service-db
 
   resource-service-db:
     container_name: resource-service-db
@@ -88,6 +103,16 @@ services:
       - '5433:5432'
     volumes:
       - song-service-data:/var/lib/postgresql/data
+
+  storage-service-db:
+    container_name: storage-service-db
+    image: postgres:alpine
+    restart: always
+    env_file: storage-service.env
+    ports:
+      - '5434:5432'
+    volumes:
+      - storage-service-data:/var/lib/postgresql/data
 
   localstack:
     image: localstack/localstack
@@ -121,5 +146,6 @@ services:
 volumes:
   resource-service-data:
   song-service-data:
+  storage-service-data:
   localstack:
   kafka:

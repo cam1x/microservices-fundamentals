@@ -1,6 +1,10 @@
 package com.chachotkin.resource.service;
 
 import com.chachotkin.resource.service.config.properties.KafkaProperties;
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import org.junit.jupiter.api.BeforeEach;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
@@ -18,7 +22,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
 
 @Testcontainers
-@ContextConfiguration(classes = BaseIT.TestConfig.class)
+@ContextConfiguration(classes = BaseIT.TestConfig.class, initializers = WireMockInitializer.class)
 public abstract class BaseIT {
 
     protected static final String TOPIC_NAME = "resource-upload";
@@ -61,5 +65,13 @@ public abstract class BaseIT {
             kafkaProperties.setTopic(TOPIC_NAME);
             return kafkaProperties;
         }
+    }
+
+    @Autowired
+    protected WireMockServer wireMockServer;
+
+    @BeforeEach
+    public void resetMocks() {
+        WireMock.reset();
     }
 }

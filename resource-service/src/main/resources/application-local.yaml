@@ -4,6 +4,12 @@ spring:
     username: postgres
     password: postgres
 
+com:
+  chachotkin:
+    service:
+      api-gateway:
+        url: http://localhost:9090
+
 eureka:
   instance:
     hostname: localhost

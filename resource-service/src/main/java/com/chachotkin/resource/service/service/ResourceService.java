@@ -1,6 +1,8 @@
 package com.chachotkin.resource.service.service;
 
+import com.chachotkin.resource.service.client.StorageServiceClient;
 import com.chachotkin.resource.service.dto.DeleteResponseDto;
+import com.chachotkin.resource.service.dto.StorageType;
 import com.chachotkin.resource.service.dto.UploadResponseDto;
 import com.chachotkin.resource.service.entity.ResourceEntity;
 import com.chachotkin.resource.service.exception.BadRequestException;
@@ -27,6 +29,7 @@ import static com.chachotkin.resource.service.util.AppConstants.AUDIO_CONTENT_TY
 public class ResourceService {
 
     private final S3Service s3Service;
+    private final StorageServiceClient storageServiceClient;
     private final ResourcePublisher resourcePublisher;
     private final ResourceRepository resourceRepository;
 
@@ -36,17 +39,17 @@ public class ResourceService {
             throw new BadRequestException("Provided content type isn't supported!");
         }
 
-        var uploadedFileMetadata = s3Service.uploadFile(multipartFile);
-        var sourcePath = uploadedFileMetadata.getSourcePath();
-        var eTag = uploadedFileMetadata.getETag();
+        var stagingStorage = storageServiceClient.retrieveStagingStorage();
+        var eTag = s3Service.uploadFile(multipartFile, stagingStorage);
 
-        if (resourceRepository.findBySourcePathAndChecksum(sourcePath, eTag).isPresent()) {
+        if (resourceRepository.findByStorageIdAndChecksum(stagingStorage.getId(), eTag).isPresent()) {
             throw new ResourceAlreadyExistsException("Uploading resource already exists!");
         }
 
         var resource = ResourceEntity.builder()
+                .fileName(multipartFile.getOriginalFilename())
                 .size(multipartFile.getSize())
-                .sourcePath(sourcePath)
+                .storageId(stagingStorage.getId())
                 .checksum(eTag)
                 .build();
         var savedResource = resourceRepository.save(resource);
@@ -54,12 +57,13 @@ public class ResourceService {
         return new UploadResponseDto(savedResource.getId());
     }
 
-    public byte[] donwload(@NonNull Long id, String range) {
+    public byte[] download(@NonNull Long id, String range) {
         var resource = resourceRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(id));
 
         if (range == null) {
-            return s3Service.downloadFile(resource.getSourcePath());
+            return s3Service.downloadFile(resource.getFileName(),
+                    storageServiceClient.retrieveStorageById(resource.getStorageId()));
         }
 
         var matcher = RegexUtils.RANGE_VALUE.matcher(range);
@@ -73,7 +77,29 @@ public class ResourceService {
             throw new BadRequestException(String.format("Provided byte range is invalid for resource [%s]!", id));
         }
 
-        return s3Service.downloadFile(resource.getSourcePath(), range);
+        return s3Service.downloadFile(resource.getFileName(),
+                storageServiceClient.retrieveStorageById(resource.getStorageId()), range);
+    }
+
+    public void completeUpload(@NonNull Long id) {
+        var resource = resourceRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(id));
+
+        var storage = storageServiceClient.retrieveStorageById(resource.getStorageId());
+
+        if (StorageType.PERMANENT.equals(storage.getType())) {
+            throw new BadRequestException(String.format("Upload already completed for resource [%d].", id));
+        }
+
+        var permanentStorage = storageServiceClient.retrievePermanentStorage();
+        s3Service.copyFile(resource.getFileName(), storage, permanentStorage);
+
+        var updatedResource = resource.toBuilder()
+                .storageId(permanentStorage.getId())
+                .build();
+        resourceRepository.save(updatedResource);
+
+        s3Service.deleteFile(resource.getFileName(), storage);
     }
 
     public DeleteResponseDto delete(@NonNull Collection<Long> ids) {
@@ -86,7 +112,8 @@ public class ResourceService {
         var deletedIds = new ArrayList<Long>();
         for (ResourceEntity resource : resources) {
             try {
-                s3Service.deleteFile(resource.getSourcePath());
+                s3Service.deleteFile(resource.getFileName(),
+                        storageServiceClient.retrieveStorageById(resource.getStorageId()));
                 resourceRepository.delete(resource);
                 deletedIds.add(resource.getId());
             } catch (Exception e) {

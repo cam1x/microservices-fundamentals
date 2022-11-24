@@ -2,10 +2,14 @@ package com.chachotkin.resource.service.cucumber.client;
 
 import com.chachotkin.resource.service.controller.ResourceController;
 import com.chachotkin.resource.service.service.ResourceService;
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.client.WireMock;
 import io.restassured.module.mockmvc.RestAssuredMockMvc;
 import io.restassured.module.mockmvc.response.MockMvcResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -23,8 +27,18 @@ public class ResourceClient {
     @Autowired
     private ResourceService resourceService;
 
+    @Autowired
+    private WireMockServer wireMockServer;
+
     @PostConstruct
     private void init() {
+        wireMockServer.stubFor(WireMock.get(WireMock.urlEqualTo("/storages"))
+                .willReturn(WireMock.aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                        .withBodyFile("/response/storage.json"))
+        );
+
         RestAssuredMockMvc.standaloneSetup(new ResourceController(resourceService));
     }
 

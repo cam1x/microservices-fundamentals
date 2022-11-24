@@ -13,6 +13,44 @@ spring:
       max-file-size: 10MB
       max-request-size: 10MB
 
+com:
+  chachotkin:
+    service:
+      storage:
+        name: storage-service
+
+feign:
+  circuitbreaker:
+    enabled: true
+    alphanumeric-ids:
+      enabled: true
+  client:
+    config:
+      default:
+        connectTimeout: 10000
+        readTimeout: 10000
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      StorageServiceClientretrieveAll:
+        registerHealthIndicator: true
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 5
+        minimumNumberOfCalls: 3
+        permittedNumberOfCallsInHalfOpenState: 1
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 5s
+        failureRateThreshold: 50
+        eventConsumerBufferSize: 10
+        writableStackTraceEnabled: true
+        recordExceptions:
+          - com.chachotkin.resource.service.exception.ServiceException
+          - java.net.SocketTimeoutException
+          - java.net.ConnectException
+          - java.util.concurrent.TimeoutException
+        ignoreExceptions:
+
 eureka:
   instance:
     prefer-ip-address: false

@@ -4,3 +4,9 @@ spring:
   cloud:
     discovery:
       enabled: false
+
+com:
+  chachotkin:
+    service:
+      api-gateway:
+        url: http://localhost:5090
