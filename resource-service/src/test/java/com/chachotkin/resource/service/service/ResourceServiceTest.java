@@ -1,11 +1,14 @@
 package com.chachotkin.resource.service.service;
 
-import com.chachotkin.resource.service.dto.UploadedFileMetadata;
+import com.chachotkin.resource.service.client.StorageServiceClient;
+import com.chachotkin.resource.service.dto.StorageDto;
+import com.chachotkin.resource.service.dto.StorageType;
 import com.chachotkin.resource.service.entity.ResourceEntity;
 import com.chachotkin.resource.service.exception.BadRequestException;
 import com.chachotkin.resource.service.exception.ResourceAlreadyExistsException;
 import com.chachotkin.resource.service.exception.ResourceNotFoundException;
 import com.chachotkin.resource.service.repository.ResourceRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -30,12 +33,15 @@ public class ResourceServiceTest {
 
     private static final long RESOURCE_ID = 1L;
     private static final long FILE_SIZE = 100L;
+    private static final String FILE_NAME = "file";
     private static final byte[] FILE_CONTENT = new byte[100];
-    private static final String SOURCE_PATH = "s3://resources/audio/file_example_2MB.mp3";
     private static final String ETAG = "8c97039fdb854de770a4e0bbceea043d";
 
     @Mock
     private S3Service s3Service;
+
+    @Mock
+    private StorageServiceClient storageServiceClient;
 
     @Mock
     private ResourcePublisher resourcePublisher;
@@ -49,6 +55,18 @@ public class ResourceServiceTest {
     @Mock
     private MultipartFile multipartFile;
 
+    private StorageDto stagingStorage;
+
+    @BeforeEach
+    void setUp() {
+        stagingStorage = StorageDto.builder()
+                .id(1L)
+                .bucket("test-bucket")
+                .path("files")
+                .type(StorageType.STAGING)
+                .build();
+    }
+
     @Test
     void shouldFailUploadForNotAudioResource() {
         // given
@@ -56,7 +74,7 @@ public class ResourceServiceTest {
 
         // when and then
         assertThrows(BadRequestException.class, () -> resourceService.upload(multipartFile));
-        verifyNoInteractions(s3Service, resourceRepository, resourcePublisher);
+        verifyNoInteractions(storageServiceClient, s3Service, resourceRepository, resourcePublisher);
     }
 
     @Test
@@ -64,38 +82,36 @@ public class ResourceServiceTest {
         // given
         when(multipartFile.getContentType()).thenReturn(AUDIO_CONTENT_TYPE);
 
-        var uploadedFileMetadata = UploadedFileMetadata.builder()
-                .sourcePath(SOURCE_PATH)
-                .eTag(ETAG)
-                .build();
-        when(s3Service.uploadFile(multipartFile)).thenReturn(uploadedFileMetadata);
-        when(resourceRepository.findBySourcePathAndChecksum(SOURCE_PATH, ETAG))
+        when(storageServiceClient.retrieveStagingStorage()).thenReturn(stagingStorage);
+        when(s3Service.uploadFile(multipartFile, stagingStorage)).thenReturn(ETAG);
+        when(resourceRepository.findByStorageIdAndChecksum(stagingStorage.getId(), ETAG))
                 .thenReturn(Optional.of(ResourceEntity.builder().build()));
 
         // when and then
         assertThrows(ResourceAlreadyExistsException.class, () -> resourceService.upload(multipartFile));
-        verify(s3Service).uploadFile(multipartFile);
-        verify(resourceRepository).findBySourcePathAndChecksum(SOURCE_PATH, ETAG);
-        verifyNoMoreInteractions(s3Service, resourceRepository);
+        verify(storageServiceClient).retrieveStagingStorage();
+        verify(s3Service).uploadFile(multipartFile, stagingStorage);
+        verify(resourceRepository).findByStorageIdAndChecksum(stagingStorage.getId(), ETAG);
+        verifyNoMoreInteractions(storageServiceClient, s3Service, resourceRepository);
         verifyNoInteractions(resourcePublisher);
     }
 
     @Test
     void shouldUploadResource() {
         // given
+        when(multipartFile.getOriginalFilename()).thenReturn(FILE_NAME);
         when(multipartFile.getContentType()).thenReturn(AUDIO_CONTENT_TYPE);
         when(multipartFile.getSize()).thenReturn(FILE_SIZE);
 
-        var uploadedFileMetadata = UploadedFileMetadata.builder()
-                .sourcePath(SOURCE_PATH)
-                .eTag(ETAG)
-                .build();
-        when(s3Service.uploadFile(multipartFile)).thenReturn(uploadedFileMetadata);
-        when(resourceRepository.findBySourcePathAndChecksum(SOURCE_PATH, ETAG)).thenReturn(Optional.empty());
+        when(storageServiceClient.retrieveStagingStorage()).thenReturn(stagingStorage);
+        when(s3Service.uploadFile(multipartFile, stagingStorage)).thenReturn(ETAG);
+        when(resourceRepository.findByStorageIdAndChecksum(stagingStorage.getId(), ETAG))
+                .thenReturn(Optional.empty());
 
         var resourceEntity = ResourceEntity.builder()
                 .size(FILE_SIZE)
-                .sourcePath(SOURCE_PATH)
+                .fileName(FILE_NAME)
+                .storageId(stagingStorage.getId())
                 .checksum(ETAG)
                 .build();
         var savedResource = resourceEntity.toBuilder()
@@ -109,11 +125,12 @@ public class ResourceServiceTest {
         // then
         assertEquals(RESOURCE_ID, uploadResponseDto.getId());
         verify(multipartFile).getContentType();
-        verify(s3Service).uploadFile(multipartFile);
-        verify(resourceRepository).findBySourcePathAndChecksum(SOURCE_PATH, ETAG);
+        verify(storageServiceClient).retrieveStagingStorage();
+        verify(s3Service).uploadFile(multipartFile, stagingStorage);
+        verify(resourceRepository).findByStorageIdAndChecksum(stagingStorage.getId(), ETAG);
         verify(resourceRepository).save(resourceEntity);
         verify(resourcePublisher).publish(savedResource);
-        verifyNoMoreInteractions(s3Service, resourceRepository, resourcePublisher);
+        verifyNoMoreInteractions(storageServiceClient, s3Service, resourceRepository, resourcePublisher);
     }
 
     @Test
@@ -122,9 +139,9 @@ public class ResourceServiceTest {
         when(resourceRepository.findById(RESOURCE_ID)).thenReturn(Optional.empty());
 
         // when and then
-        assertThrows(ResourceNotFoundException.class, () -> resourceService.donwload(RESOURCE_ID, null));
+        assertThrows(ResourceNotFoundException.class, () -> resourceService.download(RESOURCE_ID, null));
         verify(resourceRepository).findById(RESOURCE_ID);
-        verifyNoInteractions(s3Service, resourcePublisher);
+        verifyNoInteractions(storageServiceClient, s3Service, resourcePublisher);
     }
 
     @Test
@@ -132,20 +149,23 @@ public class ResourceServiceTest {
         // given
         var resourceEntity = ResourceEntity.builder()
                 .size(FILE_SIZE)
-                .sourcePath(SOURCE_PATH)
+                .fileName(FILE_NAME)
+                .storageId(stagingStorage.getId())
                 .checksum(ETAG)
                 .build();
         when(resourceRepository.findById(RESOURCE_ID)).thenReturn(Optional.of(resourceEntity));
-        when(s3Service.downloadFile(SOURCE_PATH)).thenReturn(FILE_CONTENT);
+        when(storageServiceClient.retrieveStorageById(stagingStorage.getId())).thenReturn(stagingStorage);
+        when(s3Service.downloadFile(FILE_NAME, stagingStorage)).thenReturn(FILE_CONTENT);
 
         // when
-        var downloaded = resourceService.donwload(RESOURCE_ID, null);
+        var downloaded = resourceService.download(RESOURCE_ID, null);
 
         // then
         assertEquals(FILE_CONTENT, downloaded);
         verify(resourceRepository).findById(RESOURCE_ID);
-        verify(s3Service).downloadFile(SOURCE_PATH);
-        verifyNoMoreInteractions(resourceRepository, s3Service);
+        verify(storageServiceClient).retrieveStorageById(stagingStorage.getId());
+        verify(s3Service).downloadFile(FILE_NAME, stagingStorage);
+        verifyNoMoreInteractions(storageServiceClient, resourceRepository, s3Service);
         verifyNoInteractions(resourcePublisher);
     }
 
@@ -154,16 +174,17 @@ public class ResourceServiceTest {
         // given
         var resourceEntity = ResourceEntity.builder()
                 .size(FILE_SIZE)
-                .sourcePath(SOURCE_PATH)
+                .fileName(FILE_NAME)
+                .storageId(stagingStorage.getId())
                 .checksum(ETAG)
                 .build();
         when(resourceRepository.findById(RESOURCE_ID)).thenReturn(Optional.of(resourceEntity));
 
         // when and then
-        assertThrows(BadRequestException.class, () -> resourceService.donwload(RESOURCE_ID, "fake-range"));
+        assertThrows(BadRequestException.class, () -> resourceService.download(RESOURCE_ID, "fake-range"));
         verify(resourceRepository).findById(RESOURCE_ID);
         verifyNoMoreInteractions(resourceRepository);
-        verifyNoInteractions(s3Service, resourcePublisher);
+        verifyNoInteractions(storageServiceClient, s3Service, resourcePublisher);
     }
 
     @Test
@@ -171,16 +192,17 @@ public class ResourceServiceTest {
         // given
         var resourceEntity = ResourceEntity.builder()
                 .size(FILE_SIZE)
-                .sourcePath(SOURCE_PATH)
+                .fileName(FILE_NAME)
+                .storageId(stagingStorage.getId())
                 .checksum(ETAG)
                 .build();
         when(resourceRepository.findById(RESOURCE_ID)).thenReturn(Optional.of(resourceEntity));
 
         // when and then
-        assertThrows(BadRequestException.class, () -> resourceService.donwload(RESOURCE_ID, "bytes=1-100000"));
+        assertThrows(BadRequestException.class, () -> resourceService.download(RESOURCE_ID, "bytes=1-100000"));
         verify(resourceRepository).findById(RESOURCE_ID);
         verifyNoMoreInteractions(resourceRepository);
-        verifyNoInteractions(s3Service, resourcePublisher);
+        verifyNoInteractions(storageServiceClient, s3Service, resourcePublisher);
     }
 
     @Test
@@ -188,21 +210,24 @@ public class ResourceServiceTest {
         // given
         var resourceEntity = ResourceEntity.builder()
                 .size(FILE_SIZE)
-                .sourcePath(SOURCE_PATH)
+                .fileName(FILE_NAME)
+                .storageId(stagingStorage.getId())
                 .checksum(ETAG)
                 .build();
         when(resourceRepository.findById(RESOURCE_ID)).thenReturn(Optional.of(resourceEntity));
+        when(storageServiceClient.retrieveStorageById(stagingStorage.getId())).thenReturn(stagingStorage);
         var range = "bytes=1-50";
-        when(s3Service.downloadFile(SOURCE_PATH, range)).thenReturn(FILE_CONTENT);
+        when(s3Service.downloadFile(FILE_NAME, stagingStorage, range)).thenReturn(FILE_CONTENT);
 
         // when
-        var downloaded = resourceService.donwload(RESOURCE_ID, "bytes=1-50");
+        var downloaded = resourceService.download(RESOURCE_ID, "bytes=1-50");
 
         // then
         assertEquals(FILE_CONTENT, downloaded);
         verify(resourceRepository).findById(RESOURCE_ID);
-        verify(s3Service).downloadFile(SOURCE_PATH, range);
-        verifyNoMoreInteractions(resourceRepository, s3Service);
+        verify(storageServiceClient).retrieveStorageById(stagingStorage.getId());
+        verify(s3Service).downloadFile(FILE_NAME, stagingStorage, range);
+        verifyNoMoreInteractions(storageServiceClient, resourceRepository, s3Service);
         verifyNoInteractions(resourcePublisher);
     }
 
@@ -226,19 +251,22 @@ public class ResourceServiceTest {
         var resourceEntity = ResourceEntity.builder()
                 .id(RESOURCE_ID)
                 .size(FILE_SIZE)
-                .sourcePath(SOURCE_PATH)
+                .fileName(FILE_NAME)
+                .storageId(stagingStorage.getId())
                 .checksum(ETAG)
                 .build();
         when(resourceRepository.findAllById(ids)).thenReturn(List.of(resourceEntity));
+        when(storageServiceClient.retrieveStorageById(stagingStorage.getId())).thenReturn(stagingStorage);
 
         // when
         var deleteResponse = resourceService.delete(ids);
 
         // then
         assertEquals(ids, deleteResponse.getIds());
-        verify(s3Service).deleteFile(SOURCE_PATH);
+        verify(storageServiceClient).retrieveStorageById(stagingStorage.getId());
+        verify(s3Service).deleteFile(FILE_NAME, stagingStorage);
         verify(resourceRepository).delete(resourceEntity);
-        verifyNoMoreInteractions(s3Service, resourceRepository);
+        verifyNoMoreInteractions(storageServiceClient, s3Service, resourceRepository);
         verifyNoInteractions(resourcePublisher);
     }
 }

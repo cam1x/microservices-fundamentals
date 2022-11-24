@@ -84,7 +84,7 @@ public class StepDefinitions {
         resources.forEach(resourceMetadata -> {
                     Optional<ResourceEntity> foundResource = resourceRepository.findById(resourceMetadata.getId());
                     assertThat(foundResource).isPresent();
-                    assertThat(foundResource.get().getSourcePath().endsWith(resourceMetadata.getFileName())).isTrue();
+                    assertThat(foundResource.get().getFileName().equals(resourceMetadata.getFileName())).isTrue();
                 }
         );
     }

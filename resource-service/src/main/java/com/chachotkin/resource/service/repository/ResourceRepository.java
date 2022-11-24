@@ -7,5 +7,5 @@ import java.util.Optional;
 
 public interface ResourceRepository extends JpaRepository<ResourceEntity, Long> {
 
-    Optional<ResourceEntity> findBySourcePathAndChecksum(String sourcePath, String checksum);
+    Optional<ResourceEntity> findByStorageIdAndChecksum(Long storageId, String checksum);
 }

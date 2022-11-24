@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -39,11 +40,16 @@ public class ResourceController {
     @GetMapping(value = "/{id}", produces = AUDIO_CONTENT_TYPE)
     public ResponseEntity<ByteArrayResource> download(@PathVariable Long id,
                                                       @RequestHeader(value = HttpHeaders.RANGE, required = false) String range) {
-        var data = resourceService.donwload(id, range);
+        var data = resourceService.download(id, range);
         return ResponseEntity.ok()
                 .contentLength(data.length)
                 .header(HttpHeaders.CONTENT_TYPE, AUDIO_CONTENT_TYPE)
                 .body(new ByteArrayResource(data));
+    }
+
+    @PutMapping(value = "/{id}/complete")
+    public void completeUpload(@PathVariable Long id) {
+        resourceService.completeUpload(id);
     }
 
     @DeleteMapping

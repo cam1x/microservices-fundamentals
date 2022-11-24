@@ -4,6 +4,12 @@ spring:
     username: ${POSTGRES_USER}
     password: ${POSTGRES_PASSWORD}
 
+com:
+  chachotkin:
+    service:
+      api-gateway:
+        url: ${API_GATEWAY_URL}
+
 eureka:
   instance:
     hostname: ${RESOURCE_SERVICE_HOST}

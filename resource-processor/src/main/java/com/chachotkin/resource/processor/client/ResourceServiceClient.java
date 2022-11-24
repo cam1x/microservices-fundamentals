@@ -6,6 +6,7 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 
 @FeignClient(
@@ -22,4 +23,7 @@ public interface ResourceServiceClient {
 
     @GetMapping("/{id}")
     ByteArrayResource download(@PathVariable Long id);
+
+    @PutMapping("/{id}/complete")
+    void completeUpload(@PathVariable Long id);
 }

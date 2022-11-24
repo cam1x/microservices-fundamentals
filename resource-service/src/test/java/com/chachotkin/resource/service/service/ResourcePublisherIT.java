@@ -55,7 +55,7 @@ public class ResourcePublisherIT extends BaseIT {
         var resource = ResourceEntity.builder()
                 .id(1L)
                 .checksum("8c97039fdb854de770a4e0bbceea043d")
-                .sourcePath("s3://resources/audio/file_example_2MB.mp3")
+                .storageId(1L)
                 .size(100L)
                 .createdAt(LocalDateTime.now())
                 .build();

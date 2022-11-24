@@ -53,6 +53,9 @@ public class ResourceProcessor {
 
         var songUploadResponse = songServiceClient.upload(songMetadata);
         log.info("Processing finished. Song metadata with id [{}] was saved.", songUploadResponse.getId());
+
+        resourceServiceClient.completeUpload(resourceMetadata.getId());
+        log.info("Upload completed for resource [{}].", resourceMetadata.getId());
     }
 
     private SongMetadata parseSongMetadata(Long resourceId, ByteArrayResource resource) {
