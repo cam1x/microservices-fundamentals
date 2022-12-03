@@ -5,6 +5,7 @@ pluginManagement {
         id 'org.flywaydb.flyway' version flywayVersion
         id 'org.springframework.cloud.contract' version springCloudContractVersion
         id 'com.palantir.docker' version palantirDockerVersion
+        id 'de.undercouch.download' version undercouchVersion
     }
 }
 

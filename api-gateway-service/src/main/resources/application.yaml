@@ -10,6 +10,8 @@ spring:
     web-application-type: reactive
   cloud:
     gateway:
+      metrics:
+        enabled: true
       routes:
         - id: resource-service
           uri: lb://resource-service
@@ -23,6 +25,10 @@ spring:
           uri: lb://storage-service
           predicates:
             - Path=/storages/**
+        - id: grafana
+          uri: http://grafana:3000
+          predicates:
+            - Path=/grafana/**
         - id: default
           uri: forward:/errors/invalid-resource
           predicates:
@@ -40,7 +46,24 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,metrics,prometheus
   endpoint:
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true
     health:
       show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      application: ${spring.application.name}
+
+logging:
+  pattern:
+    level: trace_id=%mdc{trace_id} %5p
+  level:
+    org.springframework.web.filter.CommonsRequestLoggingFilter: DEBUG
+

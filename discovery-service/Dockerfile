@@ -1,4 +1,5 @@
 FROM openjdk:17-jdk-alpine
 ARG JAR_FILE
 COPY ${JAR_FILE} /discovery-service.jar
-ENTRYPOINT ["java","-Dspring.profiles.active=docker","-jar","/discovery-service.jar"]
+COPY build/otel/opentelemetry-javaagent.jar /opentelemetry-javaagent.jar
+ENTRYPOINT ["java","-Dspring.profiles.active=docker","-jar","-javaagent:/opentelemetry-javaagent.jar","/discovery-service.jar"]

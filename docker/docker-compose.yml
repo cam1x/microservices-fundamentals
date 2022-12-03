@@ -1,7 +1,12 @@
 version: "3.8"
 
+x-logging: &logging
+  labels:
+    - "scrap-logs=true"
+
 services:
   discovery-service:
+    <<: *logging
     build:
       context: ../discovery-service
       args:
@@ -14,6 +19,7 @@ services:
       - '8761:8761'
 
   api-gateway-service:
+    <<: *logging
     build:
       context: ../api-gateway-service
       args:
@@ -29,17 +35,21 @@ services:
       - song-service
 
   resource-processor:
+    <<: *logging
     build:
       context: ../resource-processor
       args:
         JAR_FILE: build/libs/resource-processor.jar
     env_file: .env
+    environment:
+      - OTEL_RESOURCE_ATTRIBUTES=service.name=resource-processor
     depends_on:
       - discovery-service
       - api-gateway-service
       - kafka
 
   resource-service:
+    <<: *logging
     build:
       context: ../resource-service
       args:
@@ -57,6 +67,7 @@ services:
       - localstack
 
   song-service:
+    <<: *logging
     build:
       context: ../song-service
       args:
@@ -71,6 +82,7 @@ services:
       - song-service-db
 
   storage-service:
+    <<: *logging
     build:
       context: ../storage-service
       args:
@@ -143,9 +155,87 @@ services:
     ports:
       - '9093:9093'
 
+  loki:
+    image: grafana/loki:latest
+    command: -config.file=/etc/loki/config.yaml
+    volumes:
+      - ./config/loki.yaml:/etc/loki/config.yaml
+    ports:
+      - "3100:3100"
+    depends_on:
+      - promtail
+
+  promtail:
+    image: grafana/promtail:latest
+    volumes:
+      - ./config/promtail.yaml:/etc/promtail/config.yml
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: '-config.file=/etc/promtail/config.yml -config.expand-env'
+    depends_on:
+      - discovery-service
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    depends_on:
+      - discovery-service
+
+  prometheus:
+    image: prom/prometheus:latest
+    hostname: prometheus
+    ports:
+      - '9191:9090'
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+    volumes:
+      - ./config/prometheus.yaml:/etc/prometheus/prometheus.yml:ro
+    depends_on:
+      - discovery-service
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./config/grafana/provisioning:/etc/grafana/provisioning/
+      - ./config/grafana/dashboards:/var/lib/grafana/dashboards
+      - grafana-storage:/var/lib/grafana
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+      - GF_SERVER_SERVE_FROM_SUB_PATH=true
+      - GF_SERVER_ROOT_URL=http://localhost:9090/grafana/
+    depends_on:
+      - prometheus
+      - loki
+      - tempo
+
+  tempo:
+    image: grafana/tempo:latest
+    command: [ "-config.file=/etc/tempo.yaml" ]
+    volumes:
+      - ./config/tempo.yaml:/etc/tempo.yaml
+    restart: unless-stopped
+    ports:
+      - "4317"  # otlp grpc
+      - "4318"  # otlp http
+      - "9411"   # zipkin
+      - "14268:14268"  # jaeger ingest, Jaeger - Thrift HTTP
+      - "14250:14250"  # Jaeger - GRPC
+      - "55680:55680"  # OpenTelemetry (legacy)
+      - "3200:3200"   # tempo
+
 volumes:
   resource-service-data:
   song-service-data:
   storage-service-data:
   localstack:
   kafka:
+  grafana-storage:
