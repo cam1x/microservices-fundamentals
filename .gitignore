@@ -39,3 +39,6 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Opentelemetry jar file ###
+/opentelemetry-javaagent.jar

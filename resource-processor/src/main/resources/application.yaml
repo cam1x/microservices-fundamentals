@@ -11,10 +11,20 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,metrics,prometheus
   endpoint:
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true
     health:
       show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      application: ${spring.application.name}
 
 com:
   chachotkin:
@@ -41,3 +51,7 @@ feign:
     period: 10000
     max-period: 60000
     max-attempts: 3
+
+logging:
+  pattern:
+    level: trace_id=%mdc{trace_id} %5p

@@ -5,6 +5,7 @@ import com.chachotkin.storage.service.dto.StorageDto;
 import com.chachotkin.storage.service.dto.UploadResponseDto;
 import com.chachotkin.storage.service.service.StorageService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +21,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.Size;
 import java.util.Collection;
 
+@Slf4j
 @RequestMapping("/storages")
 @RestController
 @RequiredArgsConstructor
@@ -29,16 +31,19 @@ public class StorageController {
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<UploadResponseDto> upload(@RequestBody @Valid StorageDto storageDto) {
+        log.info("Received request for uploading storage: {}", storageDto);
         return ResponseEntity.ok(storageService.upload(storageDto));
     }
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Collection<StorageDto>> retrieveAll() {
+        log.info("Received request for retrieving all storages");
         return ResponseEntity.ok(storageService.findAll());
     }
 
     @DeleteMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<DeleteResponseDto> delete(@RequestParam @Size(min = 1, max = 200) Collection<Long> ids) {
+        log.info("Received request for deleting storages by ids {}", ids);
         var deletedIds = storageService.delete(ids);
         return deletedIds.getIds().size() == ids.size()
                 ? ResponseEntity.ok(deletedIds)
