@@ -93,8 +93,20 @@ services:
     ports:
       - '8083:8083'
     depends_on:
+      - keycloak
       - discovery-service
       - storage-service-db
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    ports:
+      - "9000:8080"
+    env_file: keycloak.env
+    command:
+      - start-dev
+      - --import-realm
+    volumes:
+      - ./config/keycloak/realm.json:/opt/keycloak/data/import/realm.json
 
   resource-service-db:
     container_name: resource-service-db

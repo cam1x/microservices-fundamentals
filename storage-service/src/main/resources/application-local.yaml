@@ -10,3 +10,6 @@ eureka:
   client:
     service-url:
       default-zone: http://localhost:8761/eureka
+
+keycloak:
+  auth-server-url: http://localhost:9000
