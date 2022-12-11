@@ -1,4 +1,5 @@
 CREATE TYPE storage_type AS ENUM ('STAGING', 'PERMANENT');
+CREATE CAST (character varying AS storage_type) WITH INOUT AS IMPLICIT;
 
 CREATE TABLE IF NOT EXISTS storages (
     id BIGSERIAL PRIMARY KEY,

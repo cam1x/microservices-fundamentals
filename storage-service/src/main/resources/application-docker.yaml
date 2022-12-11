@@ -10,3 +10,6 @@ eureka:
   client:
     serviceUrl:
       defaultZone: ${EUREKA_URL}
+
+keycloak:
+  auth-server-url: http://${KEYCLOAK_HOST}:${KEYCLOAK_PORT}
